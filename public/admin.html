@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container admin">
+    <h1>Voucher Submissions</h1>
+    <button id="logout">Logout</button>
+    <div id="entries"></div>
+  </div>
+
+  <script>
+    async function loadEntries() {
+      const res = await fetch('/admin/api/messages');
+      const data = await res.json();
+      const container = document.getElementById('entries');
+      container.innerHTML = data.map(d => `
+        <div class="entry ${d.status}">
+          <h3>${d.name}</h3>
+          <p><strong>Phone:</strong> ${d.phone}</p>
+          <p><strong>Email:</strong> ${d.email}</p>
+          <p><strong>Address:</strong> ${d.address}</p>
+          <p><strong>Voucher:</strong> ${d.voucher}</p>
+          <button onclick="mark('${d.id}')">Mark ${d.status === 'new' ? 'Processed' : 'Unprocessed'}</button>
+          <button onclick="del('${d.id}')">Delete</button>
+        </div>
+      `).join('');
+    }
+
+    async function mark(id) {
+      await fetch(`/admin/api/mark/${id}`, { method: 'POST' });
+      loadEntries();
+    }
+
+    async function del(id) {
+      await fetch(`/admin/api/delete/${id}`, { method: 'DELETE' });
+      loadEntries();
+    }
+
+    document.getElementById('logout').onclick = () => {
+      fetch('/admin/logout', { method: 'POST' }).then(() => location.reload());
+    };
+
+    loadEntries();
+  </script>
+</body>
+</html>
